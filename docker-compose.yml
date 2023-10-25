@@ -1,0 +1,211 @@
+version: '3.5'
+services:
+    nginx:
+        image: nginx:${NGINX_VERSION}-alpine
+        container_name: ${PROJECT_NAME}_nginx
+        restart: always
+        volumes:
+            - ../magento:${SRC_PATH_CONTAINER}
+            - ./etc/nginx/magento.template:/etc/nginx/conf.d/magento.template
+            - ./data/certs:/etc/nginx/certs
+        ports:
+            - ${NGINX_PORT}:${NGINX_PORT}
+            - ${NGINX_SECURE_PORT}:${NGINX_SECURE_PORT}
+        command: /bin/sh -c "envsubst '$$NGINX_HOST $$NGINX_PORT $$NGINX_SECURE_PORT $$SRC_PATH_CONTAINER $$SRC_PATH_INDEX' < /etc/nginx/conf.d/magento.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+        environment:
+            - NGINX_HOST=${NGINX_HOST}
+            - NGINX_PORT=${NGINX_PORT}
+            - NGINX_SECURE_PORT=${NGINX_SECURE_PORT}
+            - SRC_PATH_CONTAINER=${SRC_PATH_CONTAINER}
+            - SRC_PATH_INDEX=${SRC_PATH_INDEX}
+        depends_on:
+            - php
+            - mysql
+            - redis
+            - elasticsearch
+            - elasticsearch2
+        networks:
+            mageNetwork:
+                ipv4_address: 172.28.${IP_SECTION}.2
+
+    php:
+        build:
+            context: ./images/php
+            args:
+                - PHP_VERSION=${PHP_VERSION}
+                - USER_ID=${USER_ID}
+                - SRC_PATH_CONTAINER=${SRC_PATH_CONTAINER}
+                - SMTP_HOST=mailhog
+                - SMTP_PORT=1025
+        container_name: ${PROJECT_NAME}_php
+        restart: always
+        volumes:
+            - ./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+            - ../magento:${SRC_PATH_CONTAINER}
+            - mage_php_webuser-data:/home/www-data # keeps track of the webuser home directory including bash history
+        environment:
+            - MAGENTO_MODE=developer
+            - MYSQL_HOST=mysql
+            - MYSQL_DATABASE=${MYSQL_DATABASE}
+            - MYSQL_USER=root
+            - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD}
+            - REDIS_SESSION_HOST=redis
+            - REDIS_SESSION_DATABASE_ID=0
+            - REDIS_SESSION_PORT=6379
+            - REDIS_SESSION_PASSWORD=magento
+            - REDIS_CACHE_HOST=redis
+            - REDIS_CACHE_DATABASE_ID=1
+            - REDIS_CACHE_PORT=6379
+            - REDIS_CACHE_PASSWORD=magento
+            - REDIS_PAGE_CACHE_HOST=redis
+            - REDIS_PAGE_CACHE_DATABASE_ID=2
+            - REDIS_PAGE_CACHE_PORT=6379
+            - REDIS_PAGE_CACHE_PASSWORD=magento
+        depends_on:
+            - mysql
+            - redis
+            - mailhog
+        networks:
+            mageNetwork:
+                ipv4_address: 172.28.${IP_SECTION}.4
+
+    mysql:
+        image: mysql:${MYSQL_VERSION}
+        container_name: ${PROJECT_NAME}_mysql
+        restart: always
+        tty: true # needed to keep the container alive after running the command
+        environment:
+            - MYSQL_DATABASE=${MYSQL_DATABASE}
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+            - MYSQL_USER=${MYSQL_USER}
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+            - NGINX_HOST=${NGINX_HOST}
+        ports:
+            - 8989:3306
+        command: /bin/bash -c "cp /data/update-core-config.sql.template /data/update-core-config.sql && sed -i \"s/{DOMAIN}/${NGINX_HOST}/\" /data/update-core-config.sql && tail -f /dev/null"
+        volumes:
+            - mage_mysql-data:/var/lib/mysql
+            - ./data:/data
+        networks:
+            mageNetwork:
+                ipv4_address: 172.28.${IP_SECTION}.5
+
+    redis:
+        image: redis:${REDIS_VERSION}-alpine
+        container_name: ${PROJECT_NAME}_redis
+        restart: always
+        ports:
+            - 6379:6379
+        volumes:
+            - mage_redis-data:/data
+        command: redis-server --requirepass magento
+        networks:
+            mageNetwork:
+                ipv4_address: 172.28.${IP_SECTION}.11
+
+    elasticsearch:
+        image: elasticsearch:${ES_VERSION}
+        container_name: ${PROJECT_NAME}_elasticsearch
+        restart: always
+        environment:
+            - node.name=elasticsearch
+            - cluster.name=es-docker-cluster
+            - discovery.seed_hosts=elasticsearch2
+            - cluster.initial_master_nodes=elasticsearch,elasticsearch2
+            - bootstrap.memory_lock=true
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - mage_es-data:/usr/share/elasticsearch/data
+        ports:
+            - 9200
+        networks:
+            mageNetwork:
+                  ipv4_address: 172.28.${IP_SECTION}.6
+
+    elasticsearch2:
+        image: elasticsearch:${ES_VERSION}
+        container_name: ${PROJECT_NAME}_elasticsearch2
+        environment:
+            - node.name=elasticsearch2
+            - cluster.name=es-docker-cluster
+            - discovery.seed_hosts=elasticsearch
+            - cluster.initial_master_nodes=elasticsearch,elasticsearch2
+            - bootstrap.memory_lock=true
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        restart: unless-stopped
+        volumes:
+            - mage_es2-data:/usr/share/elasticsearch/data
+        networks:
+            mageNetwork:
+                ipv4_address: 172.28.${IP_SECTION}.7
+
+    kibana:
+        image: kibana:${ES_VERSION}
+        container_name: ${PROJECT_NAME}_kibana
+        restart: always
+        environment:
+            SERVER_NAME: kibana.local
+            ELASTICSEARCH_URL: http://elasticsearch:9200
+        ports:
+            - '5601:5601'
+        networks:
+            mageNetwork:
+                ipv4_address: 172.28.${IP_SECTION}.22
+
+    ## phpmyadmin will be accessible through 0.0.0.0:8081 ##
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: ${PROJECT_NAME}_phpmyadmin
+        restart: always
+        environment:
+            PMA_HOST: mysql
+            PMA_PORT: 3306
+        links:
+            - mysql
+        depends_on:
+            - mysql
+        networks:
+            mageNetwork:
+                ipv4_address: 172.28.${IP_SECTION}.21
+        ports:
+            - "8081:80"
+
+    mailhog:
+        image: mailhog/mailhog
+        container_name: ${PROJECT_NAME}_mailhog
+        user: root
+        restart: always
+        expose:
+            - 1025
+            - 8025
+        ports:
+            - 1025:1025
+            - 8025:8025
+        networks:
+            mageNetwork:
+                ipv4_address: 172.28.${IP_SECTION}.15
+
+
+volumes:
+    mage_mysql-data:
+    mage_redis-data:
+    mage_es-data:
+    mage_es2-data:
+    mage_es3-data:
+    mage_php_webuser-data:
+
+networks:
+    mageNetwork:
+        name: ${PROJECT_NAME}_network
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.28.${IP_SECTION}.0/24

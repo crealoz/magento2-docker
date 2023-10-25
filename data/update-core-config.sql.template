@@ -1,0 +1,31 @@
+/* Change Urls */
+UPDATE core_config_data SET value = "https://{DOMAIN}/" WHERE path LIKE "web/%secure/base_url";
+UPDATE core_config_data SET value = "https://{DOMAIN}/" WHERE path LIKE "web/%secure/base_link_url";
+UPDATE core_config_data SET value = "{DOMAIN}" WHERE path = "web/cookie/cookie_domain";
+UPDATE core_config_data SET value = "https://{DOMAIN}/" WHERE path LIKE "web/%secure/base_url" and scope_id = 0;
+UPDATE core_config_data SET value = "https://{DOMAIN}/" WHERE path LIKE "web/%secure/base_link_url" and scope_id = 0;
+UPDATE core_config_data SET value = "{DOMAIN}" WHERE path = "web/cookie/cookie_domain" and scope_id = 0;
+UPDATE core_config_data SET value = 0 WHERE path = "admin/url/use_custom";
+
+/* Deactivate cache */
+INSERT INTO core_config_data(scope, scope_id, path, value) VALUES ('default', 0, 'system/full_page_cache/caching_application', 2) ON DUPLICATE KEY UPDATE `value` = VALUES(value);
+
+/* Manage Elasticsearch */
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch7_server_hostname', 'elasticsearch') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch7_server_port', '9200') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch7_index_prefix', 'magento2') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch7_enable_auth', '0') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch7_server_timeout', '15') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch6_server_hostname', 'elasticsearch2') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch6_server_port', '9200') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch6_index_prefix', 'magento2') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch6_enable_auth', '0') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'catalog/search/elasticsearch6_server_timeout', '15') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+
+/* update core_config_data to remove versionning for css files */
+UPDATE core_config_data SET value = 0 WHERE path = 'dev/css/merge_css_files';
+UPDATE core_config_data SET value = 0 WHERE path = 'dev/css/minify_files';
+UPDATE core_config_data SET value = 0 WHERE path = 'dev/js/merge_files';
+UPDATE core_config_data SET value = 0 WHERE path = 'dev/js/minify_files';
+UPDATE core_config_data SET value = 0 WHERE path = 'dev/static/sign';

@@ -1,0 +1,27 @@
+# Nginx configuration
+
+# PHP stream
+upstream fastcgi_backend {
+    server  php:9000;
+}
+
+# Magento
+server {
+    listen ${NGINX_SECURE_PORT} ssl;
+    add_header 'Access-Control-Allow-Origin' '*';
+    server_name ${NGINX_HOST}; ## mention ip address or domain name
+    ssl_certificate /etc/nginx/certs/cert.crt;
+    ssl_certificate_key /etc/nginx/certs/cert.key;
+    ssl_session_timeout 5m;
+    ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+    ssl_prefer_server_ciphers on;
+    set $MAGE_ROOT ${SRC_PATH_CONTAINER};
+    include ${SRC_PATH_CONTAINER}/nginx.conf.sample;
+}
+server {
+    listen ${NGINX_PORT};
+    add_header 'Access-Control-Allow-Origin' '*';
+    server_name ${NGINX_HOST}; ## mention ip address or domain name
+	return 302 https://$server_name$request_uri;
+}
