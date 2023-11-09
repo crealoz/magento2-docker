@@ -42,13 +42,27 @@ services:
         volumes:
             - ./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini
             - ../magento:${SRC_PATH_CONTAINER}
+            - ./scripts:/scripts
             - mage_php_webuser-data:/home/www-data # keeps track of the webuser home directory including bash history
         environment:
             - MAGENTO_MODE=developer
             - MYSQL_HOST=mysql
             - MYSQL_DATABASE=${MYSQL_DATABASE}
-            - MYSQL_USER=root
-            - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD}
+            - MYSQL_USER=${MYSQL_USER}
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+            - M2_ADMIN_EMAIL=${M2_ADMIN_EMAIL}
+            - M2_ADMIN_FIRSTNAME=${M2_ADMIN_FIRSTNAME}
+            - M2_ADMIN_LASTNAME=${M2_ADMIN_LASTNAME}
+            - M2_ADMIN_PASSWORD=${M2_ADMIN_PASSWORD}
+            - M2_ADMIN_USER=${M2_ADMIN_USER}
+            - M2_ADMIN_URL=${M2_ADMIN_URL}
+            - M2_LANGUAGE=${M2_LANGUAGE}
+            - M2_CURRENCY=${M2_CURRENCY}
+            - M2_TIMEZONE=${M2_TIMEZONE}
+            - M2_VERSION=${M2_VERSION}
+            - NGINX_HOST=${NGINX_HOST}
+            - NGINX_IP=${NGINX_IP}
             - REDIS_SESSION_HOST=redis
             - REDIS_SESSION_DATABASE_ID=0
             - REDIS_SESSION_PORT=6379
@@ -73,7 +87,6 @@ services:
         image: mysql:${MYSQL_VERSION}
         container_name: ${PROJECT_NAME}_mysql
         restart: always
-        tty: true # needed to keep the container alive after running the command
         environment:
             - MYSQL_DATABASE=${MYSQL_DATABASE}
             - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
@@ -82,7 +95,6 @@ services:
             - NGINX_HOST=${NGINX_HOST}
         ports:
             - 8989:3306
-        command: /bin/bash -c "cp /data/update-core-config.sql.template /data/update-core-config.sql && sed -i \"s/{DOMAIN}/${NGINX_HOST}/\" /data/update-core-config.sql && tail -f /dev/null"
         volumes:
             - mage_mysql-data:/var/lib/mysql
             - ./data:/data

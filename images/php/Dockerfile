@@ -27,6 +27,10 @@ RUN apk add --no-cache \
         npm \
         subversion \
         patch \
+        tar \
+        gzip \
+        mysql-client \
+        redis \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-configure zip --with-zip \
     && docker-php-ext-install \

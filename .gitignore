@@ -1,2 +1,5 @@
 .idea
 .env
+/data/update-core-config.sql
+/data/certs/cert.crt
+/data/certs/cert.key
