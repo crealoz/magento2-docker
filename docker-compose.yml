@@ -43,6 +43,7 @@ services:
             - ../magento:${SRC_PATH_CONTAINER}
             - ./scripts:/scripts
             - mage_php_webuser-data:/home/www-data # keeps track of the webuser home directory including bash history
+            - ../packages:/local-packages
         environment:
             - MAGENTO_MODE=developer
             - MYSQL_HOST=mysql
