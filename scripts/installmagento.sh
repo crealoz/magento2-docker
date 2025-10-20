@@ -33,8 +33,11 @@ php /var/www/html/bin/magento setup:install \
       --use-rewrites=1 \
       --backend-frontname=$M2_ADMIN_URL \
       --search-engine=opensearch \
-      --elasticsearch-host=opensearch \
-      --elasticsearch-port=9200
+      --opensearch-host=$OPENSEARCH_HOST \
+      --opensearch-port=$OPENSEARCH_PORT \
+      --opensearch-username=admin \
+      --opensearch-password=$OPENSEARCH_PASSWORD
+
 
 echo "Setting ownership to www-data and adjust permissions to magento best practices"
 chown -R www-data:www-data /var/www/html

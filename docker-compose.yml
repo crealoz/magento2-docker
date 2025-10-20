@@ -74,6 +74,9 @@ services:
             - REDIS_PAGE_CACHE_DATABASE_ID=2
             - REDIS_PAGE_CACHE_PORT=6379
             - REDIS_PAGE_CACHE_PASSWORD=magento
+            - OPENSEARCH_HOST=opensearch
+            - OPENSEARCH_PORT=9200
+            - OPENSEARCH_PASSWORD=admin
         depends_on:
             - mysql
             - redis
@@ -123,6 +126,7 @@ services:
             - bootstrap.memory_lock=true
             - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
             - discovery.type=single-node
+            - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin
         ulimits:
             memlock:
                 soft: -1
