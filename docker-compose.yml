@@ -4,7 +4,7 @@ services:
         container_name: ${PROJECT_NAME}_nginx
         restart: always
         volumes:
-            - ../magento:${SRC_PATH_CONTAINER}
+            - ../{$PROJECT_PATH}:${SRC_PATH_CONTAINER}
             - ./etc/nginx/magento.template:/etc/nginx/conf.d/magento.template
             - ./data/certs:/etc/nginx/certs
         ports:
@@ -40,7 +40,7 @@ services:
         restart: always
         volumes:
             - ./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini
-            - ../magento:${SRC_PATH_CONTAINER}
+            - ${PROJECT_PATH}:${SRC_PATH_CONTAINER}
             - ./scripts:/scripts
             - mage_php_webuser-data:/home/www-data # keeps track of the webuser home directory including bash history
             - ../packages:/local-packages
