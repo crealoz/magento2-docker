@@ -4,7 +4,7 @@ services:
         container_name: ${PROJECT_NAME}_nginx
         restart: always
         volumes:
-            - ../${PROJECT_PATH}:${SRC_PATH_CONTAINER}
+            - ${PROJECT_PATH}:${SRC_PATH_CONTAINER}
             - ./etc/nginx/magento.template:/etc/nginx/conf.d/magento.template
             - ./data/certs:/etc/nginx/certs
         ports:
