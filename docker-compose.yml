@@ -76,7 +76,7 @@ services:
             - REDIS_PAGE_CACHE_PASSWORD=magento
             - OPENSEARCH_HOST=opensearch
             - OPENSEARCH_PORT=9200
-            - OPENSEARCH_PASSWORD=admin
+            - OPENSEARCH_PASSWORD=${OPENSEARCH_PWD}
         depends_on:
             - mysql
             - redis
@@ -126,7 +126,7 @@ services:
             - bootstrap.memory_lock=true
             - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
             - discovery.type=single-node
-            - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin
+            - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PWD}
         ulimits:
             memlock:
                 soft: -1
