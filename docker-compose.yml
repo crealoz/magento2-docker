@@ -21,8 +21,7 @@ services:
             - php
             - mysql
             - redis
-            - elasticsearch
-            - elasticsearch2
+            - opensearch
         networks:
             mageNetwork:
                 ipv4_address: 172.28.${IP_SECTION}.2
@@ -31,11 +30,11 @@ services:
         build:
             context: ./images/php
             args:
-                - PHP_VERSION=${PHP_VERSION}
-                - USER_ID=${USER_ID}
-                - SRC_PATH_CONTAINER=${SRC_PATH_CONTAINER}
-                - SMTP_HOST=mailhog
-                - SMTP_PORT=1025
+                PHP_VERSION: ${PHP_VERSION}
+                USER_ID: ${USER_ID}
+                SRC_PATH_CONTAINER: ${SRC_PATH_CONTAINER}
+                SMTP_HOST: mailhog
+                SMTP_PORT: 1025
         container_name: ${PROJECT_NAME}_php
         restart: always
         volumes:
@@ -115,62 +114,40 @@ services:
             mageNetwork:
                 ipv4_address: 172.28.${IP_SECTION}.11
 
-    elasticsearch:
-        image: elasticsearch:${ES_VERSION}
-        container_name: ${PROJECT_NAME}_elasticsearch
+    opensearch:
+        image: opensearchproject/opensearch:latest
+        container_name: ${PROJECT_NAME}_opensearch
         restart: always
         environment:
-            - node.name=elasticsearch
             - cluster.name=es-docker-cluster
-            - discovery.seed_hosts=elasticsearch2
-            - cluster.initial_master_nodes=elasticsearch,elasticsearch2
             - bootstrap.memory_lock=true
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+            - discovery.type=single-node
         ulimits:
             memlock:
                 soft: -1
                 hard: -1
         volumes:
-            - mage_es-data:/usr/share/elasticsearch/data
+            - mage_es2-data:/usr/share/opensearch/data
         ports:
-            - 9200
+            - 9201:9200
         networks:
             mageNetwork:
-                  ipv4_address: 172.28.${IP_SECTION}.6
+                  ipv4_address: 172.28.${IP_SECTION}.7
 
-    elasticsearch2:
-        image: elasticsearch:${ES_VERSION}
-        container_name: ${PROJECT_NAME}_elasticsearch2
-        environment:
-            - node.name=elasticsearch2
-            - cluster.name=es-docker-cluster
-            - discovery.seed_hosts=elasticsearch
-            - cluster.initial_master_nodes=elasticsearch,elasticsearch2
-            - bootstrap.memory_lock=true
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
-        restart: unless-stopped
-        volumes:
-            - mage_es2-data:/usr/share/elasticsearch/data
-        networks:
-            mageNetwork:
-                ipv4_address: 172.28.${IP_SECTION}.7
-
-    kibana:
-        image: kibana:${ES_VERSION}
-        container_name: ${PROJECT_NAME}_kibana
+    opensearch_dashboards:
+        image: opensearchproject/opensearch-dashboards:latest
+        container_name: ${PROJECT_NAME}_opensearch_dashboards
         restart: always
         environment:
-            SERVER_NAME: kibana.local
-            ELASTICSEARCH_URL: http://elasticsearch:9200
+            - OPENSEARCH_HOSTS=http://opensearch:9200
         ports:
-            - '5601:5601'
+            - 5601:5601
+        depends_on:
+            - opensearch
         networks:
             mageNetwork:
-                ipv4_address: 172.28.${IP_SECTION}.22
+                  ipv4_address: 172.28.${IP_SECTION}.12
 
     ## phpmyadmin will be accessible through 0.0.0.0:8081 ##
     phpmyadmin:

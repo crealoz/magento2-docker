@@ -1,5 +1,5 @@
 # Base image on
-ARG PHP_VERSION=$PHP_VERSION
+ARG PHP_VERSION
 FROM php:${PHP_VERSION}-fpm-alpine
 
 # Instal packages and libraries
