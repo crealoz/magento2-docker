@@ -32,8 +32,8 @@ php /var/www/html/bin/magento setup:install \
       --timezone=$M2_TIMEZONE \
       --use-rewrites=1 \
       --backend-frontname=$M2_ADMIN_URL \
-      --search-engine=elasticsearch7 \
-      --elasticsearch-host=elasticsearch \
+      --search-engine=opensearch3 \
+      --elasticsearch-host=opensearch \
       --elasticsearch-port=9200
 
 echo "Setting ownership to www-data and adjust permissions to magento best practices"
