@@ -32,7 +32,7 @@ php /var/www/html/bin/magento setup:install \
       --timezone=$M2_TIMEZONE \
       --use-rewrites=1 \
       --backend-frontname=$M2_ADMIN_URL \
-      --search-engine=opensearch3 \
+      --search-engine=opensearch \
       --elasticsearch-host=opensearch \
       --elasticsearch-port=9200
 
